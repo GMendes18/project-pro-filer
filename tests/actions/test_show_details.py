@@ -1,10 +1,15 @@
 import pytest
+import os
+from datetime import date
 from pro_filer.actions.main_actions import show_details
 
 
 @pytest.fixture
-def file_exists_context():
-    return {"base_path": "images/pro-filer-preview.gif"}
+def file_exists_context(tmp_path):
+    # Criação de um arquivo dentro do diretório temporário
+    file_path = tmp_path / "pro-filer-preview.gif"
+    file_path.write_text("File content")
+    return {"base_path": str(file_path)}
 
 
 @pytest.fixture
@@ -13,8 +18,11 @@ def file_not_exists_context():
 
 
 @pytest.fixture
-def file_without_extension_context():
-    return {"base_path": "images"}
+def file_without_extension_context(tmp_path):
+    # Criação de um diretório dentro do diretório temporário
+    dir_path = tmp_path / "images"
+    os.mkdir(dir_path)
+    return {"base_path": str(dir_path)}
 
 
 def test_show_details_file_exists(capsys, file_exists_context):
@@ -22,10 +30,10 @@ def test_show_details_file_exists(capsys, file_exists_context):
     captured = capsys.readouterr()
     assert captured.out == (
         "File name: pro-filer-preview.gif\n"
-        "File size in bytes: 270824\n"
+        "File size in bytes: 12\n"  # Tamanho do conteúdo do arquivo
         "File type: file\n"
         "File extension: .gif\n"
-        "Last modified date: 2024-03-28\n"
+        f"Last modified date: {date.today()}\n"
     )
 
 
@@ -43,8 +51,8 @@ def test_show_details_file_without_extension(
     captured = capsys.readouterr()
     assert captured.out == (
         "File name: images\n"
-        "File size in bytes: 4096\n"
+        "File size in bytes: 4096\n"  # Tamanho de um diretório vazio
         "File type: directory\n"
         "File extension: [no extension]\n"
-        "Last modified date: 2024-03-28\n"
+        f"Last modified date: {date.today()}\n"
     )
